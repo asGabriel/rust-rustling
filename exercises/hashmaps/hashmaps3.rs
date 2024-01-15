@@ -14,12 +14,28 @@
 // Execute `rustlings hint hashmaps3` or use the `hint` watch subcommand for a
 // hint.
 
-// I AM NOT DONE
-
 use std::collections::HashMap;
+use std::ops::AddAssign;
 
 // A structure to store the goal details of a team.
+#[derive(Debug)]
 struct Team {
+    goals_scored: u8,
+    goals_conceded: u8,
+}
+
+impl AddAssign for Team {
+    fn add_assign(&mut self, other: Self) {
+        *self = Self {
+            goals_scored: self.goals_scored + other.goals_scored,
+            goals_conceded: self.goals_conceded + other.goals_conceded,
+        };
+    }
+}
+
+#[derive(Debug)]
+struct TeamVec {
+    name: String,
     goals_scored: u8,
     goals_conceded: u8,
 }
@@ -27,6 +43,7 @@ struct Team {
 fn build_scores_table(results: String) -> HashMap<String, Team> {
     // The name of the team is the key and its associated struct is the value.
     let mut scores: HashMap<String, Team> = HashMap::new();
+    let mut vec_scores: Vec<TeamVec> = Vec::new();
 
     for r in results.lines() {
         let v: Vec<&str> = r.split(',').collect();
@@ -39,6 +56,35 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
         // will be the number of goals conceded from team_2, and similarly
         // goals scored by team_2 will be the number of goals conceded by
         // team_1.
+        vec_scores.push(TeamVec {
+            name: team_1_name,
+            goals_scored: team_1_score,
+            goals_conceded: team_2_score
+        });
+        vec_scores.push(TeamVec{
+            name: team_2_name,
+            goals_scored: team_2_score,
+            goals_conceded: team_1_score
+        });
+
+    }
+    for team_vec in &vec_scores {
+        if !scores.contains_key(&team_vec.name) {
+            scores
+                .insert(team_vec.name.to_string(), Team {
+                    goals_scored: team_vec.goals_scored, 
+                    goals_conceded: team_vec.goals_conceded
+                });
+        } else {
+            let score_team_1 = scores.entry(team_vec.name.to_string()).or_insert(Team {
+                    goals_scored: team_vec.goals_scored, 
+                    goals_conceded: team_vec.goals_conceded
+                });
+                *score_team_1 += Team {
+                    goals_scored: team_vec.goals_scored, 
+                    goals_conceded: team_vec.goals_conceded
+                };
+        }
     }
     scores
 }
